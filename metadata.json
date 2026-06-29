@@ -1,0 +1,6 @@
+{
+  "name": "Learn English Easy",
+  "description": "An advanced bilingual (English-Bengali) dictionary and language learning assistant helping native Bengali speakers master English vocabulary, usage, and fluent speaking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
