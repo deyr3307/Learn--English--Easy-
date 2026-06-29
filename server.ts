@@ -212,6 +212,54 @@ const contextualUsageResponseSchema = {
 
 // Extract all available API keys from multiple possible config slots
 const getAvailableApiKeys = (): string[] => {
+  const explicitKeys = [
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_1,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_2,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_3,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_4,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_5,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_6,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_7,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_8,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_9,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_10,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_11,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_12,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_13,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_14,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_15,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_16,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_17,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_18,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_19,
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY_20,
+    process.env.GEMINI_API_KEY,
+    process.env.GEMINI_API_KEY_1,
+    process.env.GEMINI_API_KEY_2,
+    process.env.GEMINI_API_KEY_3,
+    process.env.GEMINI_API_KEY_4,
+    process.env.GEMINI_API_KEY_5,
+    process.env.GEMINI_API_KEY_6,
+    process.env.GEMINI_API_KEY_7,
+    process.env.GEMINI_API_KEY_8,
+    process.env.GEMINI_API_KEY_9,
+    process.env.GEMINI_API_KEY_10,
+    process.env.GEMINI_API_KEY_11,
+    process.env.GEMINI_API_KEY_12,
+    process.env.GEMINI_API_KEY_13,
+    process.env.GEMINI_API_KEY_14,
+    process.env.GEMINI_API_KEY_15,
+    process.env.GEMINI_API_KEY_16,
+    process.env.GEMINI_API_KEY_17,
+    process.env.GEMINI_API_KEY_18,
+    process.env.GEMINI_API_KEY_19,
+    process.env.GEMINI_API_KEY_20,
+    process.env.GEMINI_API_KEY_ALT1,
+    process.env.GEMINI_API_KEY_ALT2,
+    process.env.GEMINI_API_KEY_ALT3,
+  ];
+
   const keys: string[] = [];
   
   // 1. Check for a list of comma-separated keys
@@ -222,11 +270,10 @@ const getAvailableApiKeys = (): string[] => {
     keys.push(...list);
   }
   
-  // 2. Check individual key variables
-  if (process.env.GEMINI_API_KEY) keys.push(process.env.GEMINI_API_KEY);
-  if (process.env.GEMINI_API_KEY_ALT1) keys.push(process.env.GEMINI_API_KEY_ALT1);
-  if (process.env.GEMINI_API_KEY_ALT2) keys.push(process.env.GEMINI_API_KEY_ALT2);
-  if (process.env.GEMINI_API_KEY_ALT3) keys.push(process.env.GEMINI_API_KEY_ALT3);
+  // 2. Load explicitly bundled keys
+  explicitKeys.forEach(k => {
+    if (k) keys.push(k);
+  });
   
   // Deduplicate and filter empty values
   return Array.from(new Set(keys)).filter(Boolean);
@@ -279,6 +326,7 @@ async function generateContentWithRetryAndFallback(params: {
 
       try {
         console.log(`[Gemini Server] Trying Key #${kIndex + 1}/${apiKeys.length} - Model: ${modelName} - Attempt ${attempt}/2`);
+        console.log("Using Key:", currentKey.slice(0, 5) + "...", "Model:", modelName);
 
         // Race the fetch against a strict timeout promise
         const generatePromise = currentAi.models.generateContent({

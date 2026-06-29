@@ -45,8 +45,9 @@ import DictionaryResult from "./components/DictionaryResult";
 import DailyReminderPanel from "./components/DailyReminderPanel";
 import StudyHabitVisualizer from "./components/StudyHabitVisualizer";
 import VocabularyFlashcards from "./components/VocabularyFlashcards";
-import { LottieFeatureIcon } from "./components/InteractiveLottie";
+import { LottieFeatureIcon, LottieSuccessCelebration } from "./components/InteractiveLottie";
 import { getSpellingSuggestions } from "./utils";
+import Achievement from "./components/Achievement";
 
 
 const getCategoryIcon = (iconName: string) => {
@@ -234,6 +235,8 @@ export default function App() {
       return 5;
     }
   });
+  const [triggerGoalCelebration, setTriggerGoalCelebration] = useState(false);
+  const [hasCelebratedToday, setHasCelebratedToday] = useState(false);
 
   const handleDailyGoalChange = (newGoal: number) => {
     setDailyGoal(newGoal);
@@ -275,8 +278,20 @@ export default function App() {
     }
   }, [studyTriggerCount]);
 
+  useEffect(() => {
+    if (wordsLearnedToday >= dailyGoal && dailyGoal > 0) {
+      if (!hasCelebratedToday) {
+        setTriggerGoalCelebration(true);
+        setHasCelebratedToday(true);
+      }
+    } else {
+      setHasCelebratedToday(false);
+    }
+  }, [wordsLearnedToday, dailyGoal, hasCelebratedToday]);
+
   // Recently searched words state
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [totalSearches, setTotalSearches] = useState<number>(0);
 
   // Derived state: Top 5 weakest words from quiz errors
   const weakestWords = Object.entries(quizStats.wordErrors || {})
@@ -612,6 +627,21 @@ export default function App() {
     } catch (e) {
       console.error("Failed to load recent searches", e);
     }
+
+    // Load total searches from localStorage
+    try {
+      const storedTotalSearches = localStorage.getItem("learn_english_easy_total_searches");
+      if (storedTotalSearches) {
+        setTotalSearches(parseInt(storedTotalSearches, 10));
+      } else {
+        const storedSearches = localStorage.getItem("learn_english_easy_recent_searches");
+        const initialCount = storedSearches ? JSON.parse(storedSearches).length : 3;
+        setTotalSearches(initialCount);
+        localStorage.setItem("learn_english_easy_total_searches", initialCount.toString());
+      }
+    } catch (e) {
+      console.error("Failed to load total searches", e);
+    }
   }, []);
 
   // Save/Unsave Bookmarked Words
@@ -631,6 +661,17 @@ export default function App() {
   const addToRecentSearches = (word: string) => {
     const clean = word.trim().toLowerCase();
     if (!clean) return;
+
+    setTotalSearches((prev) => {
+      const updatedCount = prev + 1;
+      try {
+        localStorage.setItem("learn_english_easy_total_searches", updatedCount.toString());
+      } catch (e) {
+        console.error("Failed to save total searches count", e);
+      }
+      return updatedCount;
+    });
+
     setRecentSearches((prev) => {
       const filtered = prev.filter((w) => w !== clean);
       const updated = [clean, ...filtered].slice(0, 10);
@@ -1273,6 +1314,13 @@ export default function App() {
       isDarkMode ? "bg-[#0b1311] text-[#e2f1ec]" : "bg-[#ecf9f4]"
     }`}>
       
+      {/* DAILY GOAL COMPLETED CELEBRATION OVERLAY */}
+      <LottieSuccessCelebration 
+        trigger={triggerGoalCelebration} 
+        onComplete={() => setTriggerGoalCelebration(false)} 
+        isDarkMode={isDarkMode} 
+      />
+      
       {/* FLOATING IN-APP STUDY REMINDER TOAST BANNER */}
       <div className="fixed top-20 right-4 z-50 max-w-sm w-full pointer-events-none px-4 sm:px-0">
         {inAppNotification && (
@@ -1878,7 +1926,11 @@ export default function App() {
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`rounded-3xl border-2 border-slate-900 p-6 space-y-4 relative overflow-hidden bubbly-card-shadow ${
+              className={`rounded-3xl border-2 p-6 space-y-4 relative overflow-hidden transition-all duration-500 ${
+                wordsLearnedToday >= dailyGoal 
+                  ? "border-amber-500 celebration-pulse" 
+                  : "border-slate-900 bubbly-card-shadow"
+              } ${
                 isDarkMode ? "bg-slate-900/60 text-white" : "bg-white text-slate-900"
               }`}
             >
@@ -1914,13 +1966,41 @@ export default function App() {
               </div>
 
               {/* Progress Bar Track */}
-              <div className="relative w-full h-5 bg-slate-100 dark:bg-slate-800 rounded-full border-2 border-slate-900 overflow-hidden p-[2px]">
+              <div 
+                onClick={() => {
+                  if (wordsLearnedToday >= dailyGoal) {
+                    setTriggerGoalCelebration(false);
+                    setTimeout(() => setTriggerGoalCelebration(true), 50);
+                  }
+                }}
+                className={`relative w-full h-6 bg-slate-100 dark:bg-slate-800 rounded-full border-2 border-slate-900 overflow-hidden p-[2px] transition-all duration-300 ${
+                  wordsLearnedToday >= dailyGoal 
+                    ? "hover:scale-[1.015] border-amber-500 active:scale-[0.99] cursor-pointer" 
+                    : ""
+                }`}
+                title={wordsLearnedToday >= dailyGoal ? (preferredLanguage === "EN" ? "Click to celebrate again! 🎉" : "আবার উদযাপন করতে ক্লিক করুন! 🎉") : ""}
+              >
                 <motion.div
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-[#10b981]"
+                  className={`h-full rounded-full transition-all duration-300 ${
+                    wordsLearnedToday >= dailyGoal 
+                      ? "bg-gradient-to-r from-emerald-500 via-amber-400 to-[#10b981] animate-gradient-flow" 
+                      : "bg-gradient-to-r from-emerald-400 to-[#10b981]"
+                  }`}
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.min(100, (wordsLearnedToday / dailyGoal) * 100)}%` }}
                   transition={{ duration: 0.5, ease: "easeOut" }}
                 />
+                
+                {/* Celebratory Sparks / Sparkles Inside Progress Bar */}
+                {wordsLearnedToday >= dailyGoal && (
+                  <div className="absolute inset-0 flex items-center justify-between px-3 pointer-events-none select-none">
+                    <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
+                    <span className="text-[9px] font-display font-black tracking-widest text-white uppercase text-center flex-1 drop-shadow-md">
+                      {preferredLanguage === "EN" ? "GOAL ACHIEVED! 🎉 CLICK TO CELEBRATE" : "লক্ষ্য অর্জিত! 🎉 উদযাপনে ক্লিক করুন"}
+                    </span>
+                    <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
+                  </div>
+                )}
               </div>
 
               {/* Goal Message */}
@@ -1928,7 +2008,7 @@ export default function App() {
                 <div className="text-slate-500 dark:text-slate-400 text-left">
                   {wordsLearnedToday >= dailyGoal ? (
                     <span className="text-emerald-600 dark:text-emerald-400 font-extrabold flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-spin" />
                       <span>
                         {preferredLanguage === "EN" 
                           ? "🎉 Amazing! You've crushed your daily goal!" 
@@ -1959,6 +2039,17 @@ export default function App() {
                 </button>
               </div>
             </motion.div>
+
+            {/* DYNAMIC ACHIEVEMENTS & LEARNING BADGES */}
+            <Achievement
+              preferredLanguage={preferredLanguage}
+              isDarkMode={isDarkMode}
+              totalSearches={totalSearches}
+              streak={streak}
+              totalQuizzes={quizStats.totalQuizzes}
+              totalCorrect={quizStats.totalCorrect}
+              savedWordsCount={savedWords.length}
+            />
             
             {/* HERO CARDS COMPONENT GRID: LANGUAGE TRANSLATOR & QUIZ */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

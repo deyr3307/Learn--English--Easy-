@@ -53,4 +53,31 @@
   transform: rotateY(180deg);
 }
 
+@keyframes gradient-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes gold-glow {
+  0%, 100% { 
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4), 2px 2px 0px 0px #0f172a; 
+    border-color: #0f172a;
+  }
+  50% { 
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.8), 0 0 10px rgba(16, 185, 129, 0.6), 2px 2px 0px 0px #0f172a; 
+    border-color: #f59e0b;
+  }
+}
+
+.animate-gradient-flow {
+  background-size: 200% 200%;
+  animation: gradient-flow 3s ease infinite;
+}
+
+.celebration-pulse {
+  animation: gold-glow 2s ease-in-out infinite;
+}
+
+
 
