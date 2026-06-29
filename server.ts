@@ -4,7 +4,34 @@ import dotenv from "dotenv";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 
+declare global {
+  interface ImportMeta {
+    env?: Record<string, string | undefined>;
+  }
+}
+
 dotenv.config();
+
+// Polyfill import.meta.env in Node.js environment safely so that standard Vite-style environment accesses work flawlessly.
+try {
+  if (typeof import.meta !== "undefined" && !(import.meta as any).env) {
+    Object.defineProperty(import.meta, 'env', {
+      value: new Proxy({}, {
+        get: (target, prop) => {
+          if (typeof prop === "string") {
+            return process.env[prop];
+          }
+          return undefined;
+        }
+      }),
+      writable: true,
+      configurable: true,
+      enumerable: true
+    });
+  }
+} catch (e) {
+  console.warn("Could not polyfill import.meta.env", e);
+}
 
 const app = express();
 app.use(express.json());
@@ -213,27 +240,48 @@ const contextualUsageResponseSchema = {
 // Extract all available API keys from multiple possible config slots
 const getAvailableApiKeys = (): string[] => {
   const explicitKeys = [
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_1,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_2,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_3,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_4,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_5,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_6,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_7,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_8,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_9,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_10,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_11,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_12,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_13,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_14,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_15,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_16,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_17,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_18,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_19,
-    process.env.NEXT_PUBLIC_GEMINI_API_KEY_20,
+    import.meta.env?.VITE_GEMINI_API_KEY,
+    import.meta.env?.VITE_GEMINI_API_KEY_1,
+    import.meta.env?.VITE_GEMINI_API_KEY_2,
+    import.meta.env?.VITE_GEMINI_API_KEY_3,
+    import.meta.env?.VITE_GEMINI_API_KEY_4,
+    import.meta.env?.VITE_GEMINI_API_KEY_5,
+    import.meta.env?.VITE_GEMINI_API_KEY_6,
+    import.meta.env?.VITE_GEMINI_API_KEY_7,
+    import.meta.env?.VITE_GEMINI_API_KEY_8,
+    import.meta.env?.VITE_GEMINI_API_KEY_9,
+    import.meta.env?.VITE_GEMINI_API_KEY_10,
+    import.meta.env?.VITE_GEMINI_API_KEY_11,
+    import.meta.env?.VITE_GEMINI_API_KEY_12,
+    import.meta.env?.VITE_GEMINI_API_KEY_13,
+    import.meta.env?.VITE_GEMINI_API_KEY_14,
+    import.meta.env?.VITE_GEMINI_API_KEY_15,
+    import.meta.env?.VITE_GEMINI_API_KEY_16,
+    import.meta.env?.VITE_GEMINI_API_KEY_17,
+    import.meta.env?.VITE_GEMINI_API_KEY_18,
+    import.meta.env?.VITE_GEMINI_API_KEY_19,
+    import.meta.env?.VITE_GEMINI_API_KEY_20,
+    process.env.VITE_GEMINI_API_KEY,
+    process.env.VITE_GEMINI_API_KEY_1,
+    process.env.VITE_GEMINI_API_KEY_2,
+    process.env.VITE_GEMINI_API_KEY_3,
+    process.env.VITE_GEMINI_API_KEY_4,
+    process.env.VITE_GEMINI_API_KEY_5,
+    process.env.VITE_GEMINI_API_KEY_6,
+    process.env.VITE_GEMINI_API_KEY_7,
+    process.env.VITE_GEMINI_API_KEY_8,
+    process.env.VITE_GEMINI_API_KEY_9,
+    process.env.VITE_GEMINI_API_KEY_10,
+    process.env.VITE_GEMINI_API_KEY_11,
+    process.env.VITE_GEMINI_API_KEY_12,
+    process.env.VITE_GEMINI_API_KEY_13,
+    process.env.VITE_GEMINI_API_KEY_14,
+    process.env.VITE_GEMINI_API_KEY_15,
+    process.env.VITE_GEMINI_API_KEY_16,
+    process.env.VITE_GEMINI_API_KEY_17,
+    process.env.VITE_GEMINI_API_KEY_18,
+    process.env.VITE_GEMINI_API_KEY_19,
+    process.env.VITE_GEMINI_API_KEY_20,
     process.env.GEMINI_API_KEY,
     process.env.GEMINI_API_KEY_1,
     process.env.GEMINI_API_KEY_2,
